@@ -43,7 +43,6 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        // sprawdzenie hasła przez AuthenticationManager (użyje UserService#loadUserByUsername)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
         );
