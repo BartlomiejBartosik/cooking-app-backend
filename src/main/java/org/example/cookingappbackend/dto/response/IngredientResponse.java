@@ -13,4 +13,7 @@ public class IngredientResponse {
 
     @NotBlank @Size(max = 20)
     private String unit;
+
+    @NotBlank @Size(max = 20)
+    private String category;
 }

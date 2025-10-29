@@ -3,16 +3,14 @@ package org.example.cookingappbackend.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.cookingappbackend.dto.request.RecipeCreateRequest;
-import org.example.cookingappbackend.dto.response.RecipeResponse;
-import org.example.cookingappbackend.dto.response.RecipeSearchResultResponse;
+import org.example.cookingappbackend.dto.response.*;
 import org.example.cookingappbackend.model.User;
 import org.example.cookingappbackend.service.RecipeService;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -28,8 +26,10 @@ public class RecipeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RecipeResponse>> list() {
-        return ResponseEntity.ok(recipeService.list());
+    public ResponseEntity<Page<RecipeSummaryResponse>> list(
+            @PageableDefault(size = 20, sort = "title") Pageable pageable
+    ) {
+        return ResponseEntity.ok(recipeService.list(pageable));
     }
 
     @GetMapping("/{id}")
@@ -38,9 +38,15 @@ public class RecipeController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<RecipeSearchResultResponse>> search(@RequestParam String ingredients) {
-        List<String> names = Arrays.stream(ingredients.split(",")).toList();
-        return ResponseEntity.ok(recipeService.searchByIngredients(names));
+    public ResponseEntity<Page<RecipeSummaryResponse>> search(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String ingredients,
+            @RequestParam(required = false, defaultValue = "false") boolean inPantryOnly,
+            @AuthenticationPrincipal User currentUser,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                recipeService.search(q, ingredients, inPantryOnly, currentUser, pageable)
+        );
     }
 }
-

@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.cookingappbackend.dto.request.RecipeCreateRequest;
 import org.example.cookingappbackend.dto.response.RecipeResponse;
 import org.example.cookingappbackend.dto.response.RecipeSearchResultResponse;
+import org.example.cookingappbackend.dto.response.RecipeSummaryResponse;
 import org.example.cookingappbackend.model.*;
 import org.example.cookingappbackend.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable; // <-- WŁAŚCIWY import
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,8 @@ public class RecipeService {
 
     private final RecipeRepository recipeRepo;
     private final IngredientRepository ingredientRepo;
+    private final PantryItemRepository pantryRepo;
+
 
     @Transactional
     public RecipeResponse create(RecipeCreateRequest req, User author) {
@@ -55,6 +60,7 @@ public class RecipeService {
         return toResponse(r);
     }
 
+
     @Transactional(readOnly = true)
     public List<RecipeResponse> list() {
         return recipeRepo.findAllWithIngredients()
@@ -70,6 +76,7 @@ public class RecipeService {
         r.getSteps().size();
         return toResponse(r);
     }
+
 
     @Transactional(readOnly = true)
     public List<RecipeSearchResultResponse> searchByIngredients(List<String> names) {
@@ -102,6 +109,47 @@ public class RecipeService {
         return results;
     }
 
+
+    @Transactional(readOnly = true)
+    public Page<RecipeSummaryResponse> list(Pageable pageable) {
+        return recipeRepo.findAll(pageable).map(RecipeSummaryResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<RecipeSummaryResponse> search(String q,
+                                              String ingredientsCsv,
+                                              boolean inPantryOnly,
+                                              User currentUser,
+                                              Pageable pageable) {
+        if (q != null && !q.isBlank()) {
+            return recipeRepo.findByTitleContainingIgnoreCase(q.trim(), pageable)
+                    .map(RecipeSummaryResponse::from);
+        }
+
+        if (ingredientsCsv != null && !ingredientsCsv.isBlank()) {
+            List<String> names = Arrays.stream(ingredientsCsv.split(","))
+                    .map(s -> s.trim().toLowerCase())
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+            if (names.isEmpty()) return Page.empty(pageable);
+
+            return recipeRepo.searchByIngredientNames(names, names.size(), pageable)
+                    .map(RecipeSummaryResponse::from);
+        }
+
+        if (inPantryOnly) {
+            if (currentUser == null) return Page.empty(pageable);
+            List<String> names = pantryRepo.findIngredientNamesByUserId(currentUser.getId());
+            if (names.isEmpty()) return Page.empty(pageable);
+
+            return recipeRepo.searchByIngredientNames(names, 1, pageable)
+                    .map(RecipeSummaryResponse::from);
+        }
+
+        return Page.empty(pageable);
+    }
+
+
     private RecipeResponse toResponse(Recipe r) {
         RecipeResponse res = new RecipeResponse();
         res.setId(r.getId());
@@ -117,6 +165,11 @@ public class RecipeService {
             line.setIngredientName(ri.getIngredient().getName());
             line.setUnit(ri.getIngredient().getUnit());
             line.setAmount(ri.getAmount());
+            line.setCategory(
+                    ri.getIngredient().getCategory() != null
+                            ? ri.getIngredient().getCategory().name()
+                            : "OTHER"
+            );
             ingLines.add(line);
         }
         res.setIngredients(ingLines);
@@ -149,12 +202,15 @@ public class RecipeService {
             line.setIngredientName(ri.getIngredient().getName());
             line.setUnit(ri.getIngredient().getUnit());
             line.setAmount(ri.getAmount());
+            line.setCategory(
+                    ri.getIngredient().getCategory() != null
+                            ? ri.getIngredient().getCategory().name()
+                            : "OTHER"
+            );
             ingLines.add(line);
         }
         res.setIngredients(ingLines);
 
-
         return res;
     }
 }
-

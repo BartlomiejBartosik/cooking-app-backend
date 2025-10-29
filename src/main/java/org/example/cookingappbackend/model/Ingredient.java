@@ -2,7 +2,7 @@ package org.example.cookingappbackend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+import org.example.cookingappbackend.enums.IngredientCategory;
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -19,4 +19,8 @@ public class Ingredient {
 
     @Column(nullable = false, length = 20)
     private String unit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private IngredientCategory category;
 }

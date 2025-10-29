@@ -19,6 +19,7 @@ public class RecipeResponse {
         private String ingredientName;
         private String unit;
         private Double amount;
+        private String category;
     }
     @Data
     public static class StepLine {
