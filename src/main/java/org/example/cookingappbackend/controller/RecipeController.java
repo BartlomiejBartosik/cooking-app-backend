@@ -40,11 +40,15 @@ public class RecipeController {
     @GetMapping("/search")
     public ResponseEntity<Page<RecipeSummaryResponse>> search(
             @RequestParam(required = false) String q,
+            @RequestParam(name = "query", required = false) String queryAlias,
             @RequestParam(required = false) String ingredients,
             @RequestParam(required = false, defaultValue = "false") boolean inPantryOnly,
             @AuthenticationPrincipal User currentUser,
             @PageableDefault(size = 20) Pageable pageable
     ) {
+        if ((q == null || q.isBlank()) && queryAlias != null && !queryAlias.isBlank()) {
+            q = queryAlias;
+        }
         return ResponseEntity.ok(
                 recipeService.search(q, ingredients, inPantryOnly, currentUser, pageable)
         );

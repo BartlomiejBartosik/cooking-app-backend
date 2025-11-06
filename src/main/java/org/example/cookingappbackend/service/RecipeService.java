@@ -8,7 +8,7 @@ import org.example.cookingappbackend.dto.response.RecipeSummaryResponse;
 import org.example.cookingappbackend.model.*;
 import org.example.cookingappbackend.repository.*;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable; // <-- WŁAŚCIWY import
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -139,10 +139,11 @@ public class RecipeService {
 
         if (inPantryOnly) {
             if (currentUser == null) return Page.empty(pageable);
-            List<String> names = pantryRepo.findIngredientNamesByUserId(currentUser.getId());
-            if (names.isEmpty()) return Page.empty(pageable);
+            List<String> namesLower = pantryRepo.findIngredientNamesByUserId(currentUser.getId());
+            if (namesLower.isEmpty()) return Page.empty(pageable);
 
-            return recipeRepo.searchByIngredientNames(names, 1, pageable)
+            long minCount = 1L;
+            return recipeRepo.searchPantryRanked(namesLower, minCount, pageable)
                     .map(RecipeSummaryResponse::from);
         }
 
