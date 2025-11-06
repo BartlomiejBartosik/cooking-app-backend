@@ -38,4 +38,23 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
      where r.id = :id
   """)
     Optional<Recipe> findByIdWithIngredients(@Param("id") Long id);
+
+    @Query("""
+  select r
+  from Recipe r
+  join r.ingredients ri
+  join ri.ingredient i
+  group by r
+  having sum(case when lower(i.name) in :names then 1 else 0 end) >= :minCount
+  order by
+    (count(ri) - sum(case when lower(i.name) in :names then 1 else 0 end)) asc,
+    sum(case when lower(i.name) in :names then 1 else 0 end) desc,
+    coalesce(r.avgRating, 0) desc,
+    coalesce(r.totalTimeMin, 2147483647) asc,
+    r.title asc
+""")
+    Page<Recipe> searchPantryRanked(@Param("names") List<String> namesLower,
+                                    @Param("minCount") long minCount,
+                                    Pageable pageable);
+
 }
