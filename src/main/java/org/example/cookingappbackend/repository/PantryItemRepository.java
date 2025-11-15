@@ -1,6 +1,8 @@
 package org.example.cookingappbackend.repository;
 
+import org.example.cookingappbackend.model.Ingredient;
 import org.example.cookingappbackend.model.PantryItem;
+import org.example.cookingappbackend.model.User;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -19,4 +21,9 @@ public interface PantryItemRepository extends JpaRepository<PantryItem, Long> {
         where pi.user.id = :userId
     """)
     List<String> findIngredientNamesByUserId(@Param("userId") Long userId);
+
+    List<PantryItem> findByUser(User user);
+
+    Optional<PantryItem> findByUserAndIngredient(User user, Ingredient ingredient);
+
 }

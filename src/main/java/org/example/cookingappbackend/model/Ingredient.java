@@ -3,6 +3,7 @@ package org.example.cookingappbackend.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.cookingappbackend.enums.IngredientCategory;
+
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Entity

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
         name = "pantry_items",
         uniqueConstraints = @UniqueConstraint(name = "uk_pantry_user_ingredient", columnNames = {"user_id","ingredient_id"})
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data @NoArgsConstructor @AllArgsConstructor
 public class PantryItem {
 
     @Id
