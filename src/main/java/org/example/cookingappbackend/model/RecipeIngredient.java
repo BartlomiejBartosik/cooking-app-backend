@@ -9,7 +9,6 @@ import lombok.*;
 @Entity
 @Table(name = "recipe_ingredients")
 public class RecipeIngredient {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

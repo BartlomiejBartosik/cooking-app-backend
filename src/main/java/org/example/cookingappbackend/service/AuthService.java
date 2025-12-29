@@ -28,8 +28,12 @@ public class AuthService {
     private final JwtService jwtService;
 
     public AuthResponse register(RegisterRequest req) {
+
+        if (req.getPassword() == null || req.getPassword().length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hasło musi mieć co najmniej 6 znaków.");
+        }
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new IllegalStateException("Email already in use");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Podany e-mail jest już zajęty.");
         }
         User u = new User();
         u.setName(req.getName());
@@ -67,5 +71,31 @@ public class AuthService {
 
         currentUser.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(currentUser);
+    }
+    public AuthResponse refreshToken(String refreshToken) {
+        String email;
+        try {
+            email = jwtService.extractUsername(refreshToken);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nieprawidłowy refresh token.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Nieprawidłowy refresh token."
+                ));
+
+        if (!jwtService.isRefreshTokenValid(refreshToken, user)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Refresh token wygasł lub jest nieprawidłowy."
+            );
+        }
+
+        String newAccessToken = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 }

@@ -16,27 +16,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/recipes")
 @RequiredArgsConstructor
 public class RecipeController {
-
     private final RecipeService recipeService;
-
     @PostMapping
     public ResponseEntity<RecipeResponse> create(@Valid @RequestBody RecipeCreateRequest req,
                                                  @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(recipeService.create(req, currentUser));
     }
-
     @GetMapping
     public ResponseEntity<Page<RecipeSummaryResponse>> list(
             @PageableDefault(size = 20, sort = "title") Pageable pageable
     ) {
         return ResponseEntity.ok(recipeService.list(pageable));
     }
-
     @GetMapping("/{id}")
     public ResponseEntity<RecipeResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(recipeService.get(id));
     }
-
     @GetMapping("/search")
     public ResponseEntity<Page<RecipeSummaryResponse>> search(
             @RequestParam(required = false) String q,
@@ -52,5 +47,11 @@ public class RecipeController {
         return ResponseEntity.ok(
                 recipeService.search(q, ingredients, inPantryOnly, currentUser, pageable)
         );
+    }
+    @GetMapping("/top-rated")
+    public ResponseEntity<Page<RecipeSummaryResponse>> listTopRated(
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(recipeService.listTopRated(pageable));
     }
 }

@@ -30,7 +30,6 @@ public class RecipeService {
         r.setTitle(req.getTitle());
         r.setDescription(req.getDescription());
         r.setTotalTimeMin(req.getTotalTimeMin());
-        r.setAuthor(author);
 
         if (req.getIngredients() != null) {
             for (var it : req.getIngredients()) {
@@ -214,4 +213,11 @@ public class RecipeService {
 
         return res;
     }
+
+    @Transactional(readOnly = true)
+    public Page<RecipeSummaryResponse> listTopRated(Pageable pageable) {
+        return recipeRepo.findAllByOrderByAvgRatingDesc(pageable)
+                .map(RecipeSummaryResponse::from);
+    }
+
 }

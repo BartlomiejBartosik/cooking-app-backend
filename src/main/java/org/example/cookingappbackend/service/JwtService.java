@@ -22,7 +22,21 @@ public class JwtService {
                 .signWith(SignatureAlgorithm.HS256, Base64.getDecoder().decode(SECRET_KEY))
                 .compact();
     }
-
+    private boolean isTokenExpired(String token) {
+        return Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration()
+                .before(new Date());
+    }
+    public String extractUsername(String token) {
+        return Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
     public String generateRefreshToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -32,26 +46,13 @@ public class JwtService {
                 .compact();
     }
 
-    public String extractUsername(String token) {
-        return Jwts.parser()
-                .setSigningKey(key)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
 
-    public boolean isTokenValid(String token, User userDetails) {
+
+    public boolean isRefreshTokenValid(String token, User userDetails) {
         final String username = extractUsername(token);
         return username.equals(userDetails.getEmail()) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
-        return Jwts.parser()
-                .setSigningKey(key)
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .before(new Date());
-    }
+
 
 }
