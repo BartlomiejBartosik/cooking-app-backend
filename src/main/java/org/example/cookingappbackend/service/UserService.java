@@ -23,6 +23,11 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
     public User updateProfile(User currentUser, UpdateProfileRequest req) {
         if (!currentUser.getEmail().equalsIgnoreCase(req.getEmail())) {
             if (userRepository.existsByEmail(req.getEmail())) {
